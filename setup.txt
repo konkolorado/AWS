@@ -1,0 +1,70 @@
+AWS basics:
+
+1) Make an AWS account:
+https://aws.amazon.com/console/
+
+2) Launch an instance on the EC2 computing service
+- Navigate to the Services pane in the top right corner
+- Select EC2 from the drop down menu
+- Select "Launch Instance" from the Create Instance section
+- Choose the image appropriate for your goals (Free Tier, Red HaT Dist, etc)
+- Choose instance computation type
+- Hit "Review and Launch" then "Launch"
+- Create a new key pair if this is your first time. Otherwise, use a preexisting key pair.
+- Download keypair, run chmod 600 on it, and move it into ~/.ssh/ 
+- The default Security Group for this instance should allow SSH access into the instance
+- Wait a few minutes for the instance to properly Launch
+
+3) Communicate (send / receive data) with the S3 storage service
+- [Python] Install boto (Homebrew)
+- Create a credentials text file
+    - Navigate to the AWS console
+    - Select "My Security Credentials"
+    - Continue to Security Credentials
+    - Expand the Access Keys tab
+    - Create New Access Key, this will download a credentials file to your local computer
+    - Examine the file to make sure the first line is '[Credentials]'
+    - Rename the file as .boto and move to ~
+- Type export AWS_CREDENTIAL_FILE=~/path/to/.botocreds
+- You can now communicate with S3 using boto (see s3.py for examples)
+
+4) SSH-ing into your running instance
+- On console, Navigate to EC2
+- Select "Running Instances" on the top tab
+- Choose an instance, select "Connect"
+- Copy the last line beginning with ssh, replace key.pem with the path and name to your own key permissions file
+    ssh -i ~/.ssh/key.pem user@instance_id.amazonaws.com
+- Continue connection
+- NOTE: If you cannot ssh (connection timeout) it may be because your instance does not have its security groups properly setup to accept incoming ssh
+connections. You'll have to update its security group details.
+
+
+4) Setting up and Installing software on a (Linux) instance after SSH-ing in
+- Upgrade pip
+    - pip install --upgrade pip --user
+- Use whereis to see which versions of pip are available (pip2.7 as of writing)
+    - whereis pip
+- Install packages necessary for your work
+    - pip2.7 install numpy --user 
+
+
+5) Updating Security Groups details to allow for SSH
+- Navigate to EC2 service on AWS console
+- Go to Running Instances 
+- Select a running service, scroll to the far right under the "Security Groups" column. Select that entry
+- In the lower window, select the Inbound tab. Make sure you have a row reading Type: SSH; Protocol: TCP; Port Range: 22; Source: 0.0.0.0/0
+- If not, edit the Inbound rules and add one with the above configuration 
+
+
+6) SCP files to your running instance
+- scp -i ~/.ssh/key.pem filename user@instance.amazonaws.com:
+
+7) A few remarks
+- Terminate an instance when done working otherwise you will be charged/its idle time will count towards computation time
+- Terminating an instance will clear an files saved locally on that instance. Use s3 to backup files or transfer work back to your local comp
+ 
+8) Copy data from S3 to a running EC2 instance:
+- Install aws command line tools:
+    - pip2.7 install awscli --user
+- Enter command
+    - aws s3 cp s3:/bucket/path/to/filename.csv destination/filename.csv
